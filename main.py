@@ -3,8 +3,14 @@ from ultralytics import YOLO
 import uvicorn
 import shutil
 import os
+import urllib.request
 
 app = FastAPI()
+
+MODEL_URL = "https://drive.google.com/uc?export=download&id=1872AyBlvYlYMi6ZHL7doXNlZziMhG6Qv"
+
+# download model at startup
+urllib.request.urlretrieve(MODEL_URL, "best.pt")
 
 model = YOLO("best.pt")
 
@@ -32,5 +38,6 @@ async def predict(file: UploadFile = File(...)):
 
     return {"detections": detections}
 
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
