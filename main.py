@@ -8,11 +8,16 @@ import urllib.request
 app = FastAPI()
 
 MODEL_URL = "https://drive.google.com/uc?export=download&id=1872AyBlvYlYMi6ZHL7doXNlZziMhG6Qv"
+MODEL_PATH = "best.pt"
 
-# download model at startup
-urllib.request.urlretrieve(MODEL_URL, "best.pt")
+def download_model():
+    if not os.path.exists(MODEL_PATH):
+        print("Downloading model...")
+        urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
 
-model = YOLO("best.pt")
+download_model()
+
+model = YOLO(MODEL_PATH)
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -37,7 +42,3 @@ async def predict(file: UploadFile = File(...)):
             })
 
     return {"detections": detections}
-
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
