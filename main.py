@@ -16,20 +16,24 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 model = None
 
 
-def download_model():
+def load_model():
     global model
 
+    if model is not None:
+        return model
+
     if not os.path.exists(MODEL_PATH):
-        print("Downloading model with gdown...")
+        print("Downloading model...")
+        gdown.download(
+            f"https://drive.google.com/uc?id={MODEL_ID}",
+            MODEL_PATH,
+            quiet=False
+        )
 
-        url = f"https://drive.google.com/uc?id={MODEL_ID}"
-        gdown.download(url, MODEL_PATH, quiet=False)
-
-    print("Loading YOLO model...")
+    print("Loading model...")
     model = YOLO(MODEL_PATH)
 
-
-download_model()
+    return model
 
 
 @app.get("/")
@@ -39,6 +43,8 @@ def home():
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
+    model = load_model()
+
     file_path = f"{UPLOAD_DIR}/{file.filename}"
 
     with open(file_path, "wb") as buffer:
