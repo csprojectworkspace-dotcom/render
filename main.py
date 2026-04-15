@@ -7,33 +7,18 @@ import gdown
 
 app = FastAPI()
 
-MODEL_ID = "1872AyBlvYlYMi6ZHL7doXNlZziMhG6Qv"
-MODEL_PATH = "best.pt"
-
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-model = None
+MODEL_PATH = "best.pt"
 
+# download model ONLY if not exists
+if not os.path.exists(MODEL_PATH):
+    url = "https://drive.google.com/uc?id=1872AyBlvYlYMi6ZHL7doXNlZziMhG6Qv"
+    gdown.download(url, MODEL_PATH, quiet=False)
 
-def load_model():
-    global model
-
-    if model is not None:
-        return model
-
-    if not os.path.exists(MODEL_PATH):
-        print("Downloading model...")
-        gdown.download(
-            f"https://drive.google.com/uc?id={MODEL_ID}",
-            MODEL_PATH,
-            quiet=False
-        )
-
-    print("Loading model...")
-    model = YOLO(MODEL_PATH)
-
-    return model
+# load model AFTER download
+model = YOLO(MODEL_PATH)
 
 
 @app.get("/")
@@ -43,8 +28,6 @@ def home():
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
-    model = load_model()
-
     file_path = f"{UPLOAD_DIR}/{file.filename}"
 
     with open(file_path, "wb") as buffer:
